@@ -5,14 +5,14 @@ require_once 'system/resource.php';
 require_once 'system/folder.php';
 
 $request_uri = $_SERVER['REQUEST_URI'];
-$params = explode("/", trim($request_uri, '/'));
+$action_params = explode("?", trim($request_uri, '/'));
 
-switch ($params[0]) {
+switch ($action_params[0]) {
   case "folder_list":
-    $parent = isset($params[1]) ? $params[1] : "";
-    $start = isset($params[2]) ? $params[2] : 0;
-    $count = isset($params[3]) ? $params[3] : FOLDER_PAGE;
-    $sort = !empty($params[4]) ? $params[4] : FOLDER_SORT;
+    $parent = !empty($_GET['parent']) ? $_GET['parent'] : "";
+    $start = !empty($_GET['start']) ? $_GET['start'] : 0;
+    $count = !empty($_GET['count']) ? $_GET['count'] : FOLDER_PAGE;
+    $sort = !empty($_GET['sort']) ? $_GET['sort'] : FOLDER_SORT;
 
     $folder_list = folder_list($parent, $start, $count, $sort);
     deliver_json($folder_list);
@@ -20,9 +20,9 @@ switch ($params[0]) {
     break;
 
   case "resource_list":
-    $start = isset($params[1]) ? $params[1] : 0;
-    $count = isset($params[2]) ? $params[2] : RESOURCE_PAGE;
-    $sort = !empty($params[3]) ? $params[3] : RESOURCE_SORT;
+    $start = !empty($_GET['start']) ? $_GET['start'] : 0;
+    $count = !empty($_GET['count']) ? $_GET['count'] : RESOURCE_PAGE;
+    $sort = !empty($_GET['sort']) ? $_GET['sort'] : RESOURCE_SORT;
 
     $resource_list = resource_list($start, $count, $sort);
     deliver_json($resource_list);
@@ -30,7 +30,7 @@ switch ($params[0]) {
     break;
 
   case "resource":
-    $resource_id = $params[1];
+    $resource_id = $_GET['resource_id'];
     $resource = resource_get($resource_id);
     $resource_key = $resource['key'];
     $resource_url = resource_url($resource_key);
