@@ -8,7 +8,7 @@ function resource_get($resource_id) {
 
   $m = new MongoClient(MONGO_URI);
   $db = $m->{MONGO_DB};
-  $collection = new MongoCollection($db, 'resources');
+  $collection = new MongoCollection($db, 'resource');
 
   $resources_query = array('_id' => new MongoId($resource_id));
   $resources_fields = array('filename', 'key');
@@ -23,7 +23,7 @@ function resource_list($start = 0, $count = RESOURCE_PAGE, $sort = RESOURCE_SORT
 
   $m = new MongoClient(MONGO_URI);
   $db = $m->{MONGO_DB};
-  $collection = new MongoCollection($db, 'resources');
+  $collection = new MongoCollection($db, 'resource');
   
   $resources_query = array();
   $resources_fields = array('filename', 'key');
