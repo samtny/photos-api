@@ -9,7 +9,7 @@ $action_params = explode("?", trim($request_uri, '/'));
 
 switch ($action_params[0]) {
   case "folder_list":
-    $parent = !empty($_GET['parent']) ? $_GET['parent'] : "";
+    $parent = !empty($_GET['parent']) ? $_GET['parent'] : '';
     $start = !empty($_GET['start']) ? $_GET['start'] : 0;
     $count = !empty($_GET['count']) ? $_GET['count'] : FOLDER_PAGE;
     $sort = !empty($_GET['sort']) ? $_GET['sort'] : FOLDER_SORT;
