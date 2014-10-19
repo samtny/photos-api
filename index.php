@@ -15,16 +15,12 @@ switch ($action_params[0]) {
     $sort = !empty($_GET['sort']) ? $_GET['sort'] : FOLDER_SORT;
 
     $folder_list = folder_list($parent, $start, $count, $sort);
-    deliver_json($folder_list);
+    deliver_json(folder_list());
 
     break;
 
   case "resource_list":
-    $start = !empty($_GET['start']) ? $_GET['start'] : 0;
-    $count = !empty($_GET['count']) ? $_GET['count'] : RESOURCE_PAGE;
-    $sort = !empty($_GET['sort']) ? $_GET['sort'] : RESOURCE_SORT;
-
-    $resource_list = resource_list($start, $count, $sort);
+    $resource_list = resource_list();
     deliver_json($resource_list);
 
     break;

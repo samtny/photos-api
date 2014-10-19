@@ -6,13 +6,14 @@ function deliver_template($template) {
 }
 
 function deliver_redirect($url, $perm = false) {
-  header('Cache-Control: public, max-age=300');
+  header('Cache-Control: public, max-age=3000');
   header('Location: ' . $url);
   exit(0);
 }
 
 function deliver_json($data) {
   header('Content-Type: application/json');
+  header('Cache-Control: public, max-age=300');
   echo json_encode($data);
   exit(0);
 }
