@@ -22,7 +22,8 @@ function resource_list($start = 0, $count = RESOURCE_PAGE, $sort = RESOURCE_SORT
   $resource_list = array();
   
   $folder_id = !empty($_GET['folder_id']) ? $_GET['folder_id'] : NULL;
-  $derivative = !empty($_GET['derivative']) ? $_GET['derivative'] : 'thumb/100x100';
+  $derivative = !empty($_GET['derivative']) ? $_GET['derivative'] : RESOURCE_DERIVATIVE_DEFAULT;
+  $search = !empty($_GET['search']) ? $_GET['search'] : NULL;
 
   $start = !empty($_GET['start']) ? $_GET['start'] : 0;
   $count = !empty($_GET['count']) ? $_GET['count'] : RESOURCE_PAGE;
@@ -31,11 +32,33 @@ function resource_list($start = 0, $count = RESOURCE_PAGE, $sort = RESOURCE_SORT
   $m = new MongoClient(MONGO_URI);
   $db = $m->{MONGO_DB};
   $collection = new MongoCollection($db, 'resource');
+
+  $resources_query = array();  
   
-  $resources_query = !empty($folder_id) ? array( 'folder_id' => new MongoId($folder_id)) : array();
+  !empty($folder_id) && $resources_query['folder_id'] = new MongoId($folder_id);
+
+  if (!empty($search)) {
+    $exploded = explode(' ', $search);
+    $cleaned = array();
+
+    foreach ($exploded as $term) {
+      $term_trimmed = trim($term);
+
+      if (strlen($term_trimmed)) {
+        $cleaned[] = $term_trimmed;
+      }
+    }
+
+    if (!empty($cleaned)) {
+      $search_cleaned = implode('|', $cleaned);
+
+      $resources_query['tags'] = new MongoRegex("/$search_cleaned/i");
+    }
+  }
+
   $resources_query['derivative'] = $derivative;
 
-  $resources_fields = array('filename', 'key', 'derivative');
+  $resources_fields = array('filename', 'key', 'derivative', 'name');
 
   $cursor = $collection->find($resources_query, $resources_fields)->sort(array($sort => 1))->skip($start)->limit($count);
 
