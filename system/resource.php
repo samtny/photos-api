@@ -22,7 +22,7 @@ function resource_list($start = 0, $count = RESOURCE_PAGE, $sort = RESOURCE_SORT
   $resource_list = array();
   
   $folder_id = !empty($_GET['folder_id']) ? $_GET['folder_id'] : NULL;
-  $derivative = !empty($_GET['derivative']) ? $_GET['derivative'] : RESOURCE_DERIVATIVE_DEFAULT;
+  //$derivative = !empty($_GET['derivative']) ? $_GET['derivative'] : RESOURCE_DERIVATIVE_DEFAULT;
   $search = !empty($_GET['search']) ? $_GET['search'] : NULL;
 
   $start = !empty($_GET['start']) ? $_GET['start'] : 0;
@@ -56,7 +56,7 @@ function resource_list($start = 0, $count = RESOURCE_PAGE, $sort = RESOURCE_SORT
     }
   }
 
-  $resources_query['derivative'] = $derivative;
+  //$resources_query['derivative'] = $derivative;
 
   $resources_fields = array('filename', 'key', 'derivative', 'name');
 

@@ -29,6 +29,10 @@ switch ($action_params[0]) {
     $resource_id = $_GET['resource_id'];
     $resource = resource_get($resource_id);
     $resource_key = $resource['key'];
+    $derivative = $_GET['derivative'];
+    if (!empty($derivative)) {
+      $resource_key = $derivative . '/' . $resource_key;
+    }
     $resource_url = resource_url($resource_key);
     deliver_redirect($resource_url);
 

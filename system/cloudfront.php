@@ -15,8 +15,8 @@ function cloudfront_signed_url($resource_key) {
   //$expires = time() + 300;
   $expires = strtotime('tomorrow midnight');
 
-  $resourceUrl = $hostUrl . '/' . $resource_key;
-
+  $resourceUrl = $hostUrl . '/' . urlencode($resource_key);
+//deliver_string($resourceUrl);
   $policy = <<<POLICY
 {
   "Statement": [

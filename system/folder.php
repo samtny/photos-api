@@ -45,10 +45,12 @@ function folder_inflate(&$folder) {
   $db = $m->{MONGO_DB};
   $collection = new MongoCollection($db, 'folder');
 
-  foreach ($folder['children'] as &$item) {
-    $item = folder_get($item);
+  if (!empty($folder['children'])) {
+    foreach ($folder['children'] as &$item) {
+      $item = folder_get($item);
 
-    folder_inflate($item);
+      folder_inflate($item);
+    }
   }
 }
 
