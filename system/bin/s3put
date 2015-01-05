@@ -1,0 +1,32 @@
+#!/bin/bash
+
+USAGE="Usage: s3put [BUCKET] [PATH]"
+
+if [ $# -ne 2 ]; then
+  echo "$USAGE"
+  exit 1
+fi
+
+PUT_BUCKET=$1
+PUT_PATH=$2
+
+FILES=$(find -P $PUT_PATH -type f)
+
+control_c()
+{
+  exit $?
+}
+
+trap control_c SIGINT
+
+while read -r FILE; do
+  echo "$FILE"
+  #aws s3api head-object --bucket "$BUCKET" --key "$FILE" > /dev/null 2>&1
+
+  #if [ ! $? -eq 0 ]; then
+    aws s3api put-object --bucket "$BUCKET" --key "$FILE" --body "$FILE"
+  #fi
+done <<< "$FILES"
+
+exit 0
+

@@ -1,0 +1,45 @@
+#!/bin/bash
+
+set -e
+#set -x
+
+USAGE="Usage: folderput [path] [child_folder_id] [db]"
+
+if [ $# -lt 1 ]; then
+  echo "$USAGE"
+  exit 1
+fi
+
+FOLDER_PATH=$1
+CHILD_FOLDER_ID=$2
+DB_NAME=$3
+
+MONGO_HOST="ec2-54-172-64-205.compute-1.amazonaws.com:27017"
+MONGO_DB="$DB_NAME"
+MONGO_COLLECTION_RESOURCE=resource
+MONGO_COLLECTION_FOLDER=folder
+
+# insert / update path, name
+FOLDER_NAME=$(basename "$FOLDER_PATH")
+mongo --quiet $MONGO_HOST/$MONGO_DB --eval "db.$MONGO_COLLECTION_FOLDER.update( { path:\"$FOLDER_PATH\" }, { \$set:{path:\"$FOLDER_PATH\", name:\"$FOLDER_NAME\" } }, { upsert: true } )"
+
+# lookup folder_id
+FOLDER_ID=$(mongo --quiet $MONGO_HOST/$MONGO_DB --eval "printjson(db.$MONGO_COLLECTION_FOLDER.find( { path:\"$FOLDER_PATH\" }, { _id: 1 } ).toArray() )" | cut -d: -f2 | cut -d' ' -f2 )
+
+if [ "$CHILD_FOLDER_ID" != "" ]; then
+  # apply child
+  mongo --quiet $MONGO_HOST/$MONGO_DB --eval "db.$MONGO_COLLECTION_FOLDER.update( { _id: $FOLDER_ID, children: { \$not: { \$in: [ $CHILD_FOLDER_ID ] } } }, { \$push: { children: $CHILD_FOLDER_ID } } )"
+fi
+
+if [ "$FOLDER_PATH" != "" ]; then
+  # insert / update parent
+  PARENT_FOLDER_PATH=$(dirname "$FOLDER_PATH")
+  [ "$PARENT_FOLDER_PATH" = "." ] && PARENT_FOLDER_PATH=""
+
+  folderput "$PARENT_FOLDER_PATH" $FOLDER_ID
+fi
+
+[ "$CHILD_FOLDER_ID" = "" ] && echo "$FOLDER_ID"
+
+exit 0
+

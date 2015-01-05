@@ -1,0 +1,68 @@
+#!/bin/bash
+
+set -e
+set -x
+USAGE="Usage: s3vthumbs [list] [dimensions] [nopad] [bucket]"
+
+if [ $# -lt 1 ]; then
+  echo "$USAGE"
+  exit 1
+fi
+
+LIST=$1
+DIMENSIONS=$2
+NOPAD=$3
+BUCKET=$4
+
+WORKING_DIR=/tmp/s3vthumbs
+mkdir -p $WORKING_DIR
+
+[ "$DIMENSIONS" = "" ] && DIMENSIONS="200x200"
+[ "$LIST" = "" ] && LIST=$WORKING_DIR/__s3list
+
+THUMBS_PREFIX=__thumbs
+
+[ ! -f $LIST ] && s3list "$BUCKET" | grep -v "^$THUMBS_PREFIX" >> $LIST
+
+old_IFS=$IFS
+IFS=$'\n'
+
+for LINE in $(cat $LIST); do
+  KEY=$LINE
+  KEY_FILTERED=$(s3filter "$KEY" Video) 
+
+  if [ "$KEY_FILTERED" != "" ]; then
+    DIRNAME=$(dirname "$KEY")
+    FILENAME=$(basename "$KEY")
+    FILENAME_NO_EXTENSION="${FILENAME%.*}"
+    
+    ORIGINAL=$WORKING_DIR/$FILENAME
+    FRAME=$WORKING_DIR/frame__$FILENAME_NO_EXTENSION.jpg
+    THUMB=$WORKING_DIR/thumb__$FILENAME_NO_EXTENSION.jpg
+
+    aws s3api get-object --bucket "$BUCKET" --key "$KEY" "$ORIGINAL" 
+
+    DURATION=$(avconv -i "$ORIGINAL" 2>&1 | grep Duration | cut -d' ' -f4 | sed s/,//)
+
+    SS=15
+
+    SECONDS=$(echo "$DURATION" | awk -F: '{ print ($1 * 3600) + ($2 * 60) + $3 }' | cut -d'.' -f2)
+
+    [ $SECONDS -lt 5 ] && SS=0
+
+    avconv -loglevel quiet -ss $SS -i "$ORIGINAL" -strict experimental -vframes 1 $FRAME
+
+    convert "$FRAME" -thumbnail "$DIMENSIONS" -strip -interlace Plane -quality 80 "$THUMB" || true
+
+    aws s3api put-object --bucket "$BUCKET" --key "$THUMBS_PREFIX/$DIMENSIONS/$DIRNAME/$FILENAME.jpg" --body "$THUMB" 
+ 
+    rm "$THUMB"
+    rm "$FRAME"
+    rm "$ORIGINAL"
+  fi
+done
+
+IFS=$old_IFS
+
+exit 0
+

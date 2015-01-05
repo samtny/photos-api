@@ -1,0 +1,59 @@
+#!/bin/bash
+
+set -e
+set -x
+
+USAGE="Usage: s3thumbs [list] [dimensions] [nopad] [bucket]"
+
+if [ $# -lt 1 ]; then
+  echo "$USAGE"
+  exit 1
+fi
+
+LIST=$1
+DIMENSIONS=$2
+NOPAD=$3
+BUCKET=$4
+
+[ "$DIMENSIONS" = "" ] && DIMENSIONS="200x200"
+
+WORKING_DIR=/tmp/s3thumbs
+
+mkdir -p $WORKING_DIR
+
+old_IFS=$IFS
+IFS=$'\n'
+
+for LINE in $(cat $LIST); do
+  KEY=$LINE
+  KEY_FILTERED=$(s3filter "$KEY" || true) 
+
+  if [ "$KEY_FILTERED" != "" ]; then
+    DIRNAME=$(dirname "$KEY")
+    FILENAME=$(basename "$KEY")
+    
+    ORIGINAL=$WORKING_DIR/$FILENAME
+    THUMB=$WORKING_DIR/thumb__$FILENAME.jpg
+
+    aws s3api get-object --bucket "$BUCKET" --key "$KEY" "$ORIGINAL" || true
+
+    if [ $? -eq 0 ]; then
+      if [ "$NOPAD" = "" ]; then
+        convert "$ORIGINAL" -auto-orient +repage -thumbnail $DIMENSIONS -background white -gravity center -extent $DIMENSIONS -strip -interlace Plane -quality 80 "$THUMB" || true
+      else
+        convert "$ORIGINAL" -auto-orient +repage -thumbnail $DIMENSIONS -strip -interlace Plane -quality 80 "$THUMB" || true
+      fi
+    fi
+
+    [ -f "$THUMB" ] && aws s3api put-object --bucket "$BUCKET" --key "__thumbs/$DIMENSIONS/$DIRNAME/$FILENAME.jpg" --body "$THUMB" || true 
+
+    [ -f "$THUMB" ] && rm "$THUMB"
+
+    [ -f "$ORIGINAL" ] && rm "$ORIGINAL"
+  fi
+done
+
+IFS=$old_IFS
+
+exit 0
+
