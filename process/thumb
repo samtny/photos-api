@@ -1,0 +1,36 @@
+#!/bin/bash
+
+set -e
+set -x
+
+USAGE="Usage: thumb [original] [dimensions] [nopad]"
+
+if [ $# -lt 1 ]; then
+  echo "$USAGE"
+  exit 1
+fi
+
+ORIGINAL=$1
+DIMENSIONS=$2
+NOPAD=$3
+
+[ "$DIMENSIONS" = "" ] && DIMENSIONS="200x200"
+
+QUALITY=80
+
+FILENAME=$(basename "$ORIGINAL")
+
+[ "$WORKING_DIR" = "" ] && WORKING_DIR=.
+
+THUMB=$WORKING_DIR/thumb__$FILENAME.jpg
+
+if [ "$NOPAD" = "" ]; then
+  convert "$ORIGINAL" -auto-orient +repage -thumbnail $DIMENSIONS -background white -gravity center -extent $DIMENSIONS -strip -interlace Plane -quality $QUALITY "$THUMB"
+else
+  convert "$ORIGINAL" -auto-orient +repage -thumbnail $DIMENSIONS -strip -interlace Plane -quality $QUALITY "$THUMB"
+fi
+
+echo "$THUMB"
+
+exit 0
+

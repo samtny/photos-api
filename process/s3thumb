@@ -1,0 +1,47 @@
+#!/bin/bash
+
+set -e
+set -x
+
+USAGE="Usage: s3thumb [bucket] [key] [dimensions] [nopad]"
+
+if [ $# -lt 2 ]; then
+  echo "$USAGE"
+  exit 1
+fi
+
+BUCKET=$1
+KEY=$2
+DIMENSIONS=$3
+NOPAD=$4
+
+[ "$DIMENSIONS" = "" ] && DIMENSIONS="200x200"
+
+QUALITY=80
+
+WORKING_DIR=/tmp/s3thumb
+mkdir -p $WORKING_DIR
+
+DIRNAME=$(dirname "$KEY")
+FILENAME=$(basename "$KEY")
+
+ORIGINAL=$WORKING_DIR/$FILENAME
+THUMB=$WORKING_DIR/thumb__$FILENAME.jpg
+
+aws s3api get-object --bucket "$BUCKET" --key "$KEY" "$ORIGINAL"
+
+if [ "$NOPAD" = "" ]; then
+  convert "$ORIGINAL" -auto-orient +repage -thumbnail $DIMENSIONS -background white -gravity center -extent $DIMENSIONS -strip -interlace Plane -quality $QUALITY "$THUMB"
+else
+  convert "$ORIGINAL" -auto-orient +repage -thumbnail $DIMENSIONS -strip -interlace Plane -quality $QUALITY "$THUMB"
+fi
+
+aws s3api put-object --bucket "$BUCKET" --key "__thumbs/$DIMENSIONS/$DIRNAME/$FILENAME.jpg" --body "$THUMB" 
+
+exit 1
+
+rm "$THUMB"
+rm "$ORIGINAL"
+
+exit 0
+

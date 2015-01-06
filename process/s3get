@@ -1,0 +1,26 @@
+#!/bin/bash
+
+set -e
+set -x
+
+USAGE="Usage: s3get [bucket] [key] [destination]"
+
+if [ $# -lt 2 ]; then
+  echo "$USAGE"
+  exit 1
+fi
+
+BUCKET=$1
+KEY=$2
+DESTINATION=$3
+
+FILENAME=$(basename "$KEY")
+
+[ "$WORKING_DIR" = "" ] && WORKING_DIR=.
+
+DESTINATION=$WORKING_DIR/$FILENAME
+
+aws s3api get-object --bucket "$BUCKET" --key "$KEY" "$DESTINATION"
+
+exit 0
+

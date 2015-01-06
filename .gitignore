@@ -4,3 +4,4 @@ system/*.pem
 system/composer.lock
 system/composer.phar
 system/config.php
+process/working
