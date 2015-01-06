@@ -1,15 +1,22 @@
 #!/bin/bash
 
-USAGE="Usage: s3list [BUCKET]"
+set -e
 
-if [ $# -ne 1 ]; then
+USAGE="Usage: s3list [BUCKET] [COUNT]"
+
+if [ $# -lt 1 ]; then
   echo "$USAGE"
   exit 1
 fi
 
 BUCKET=$1
+COUNT=$2
 
-aws s3api list-objects --bucket $BUCKET --query "Contents[].{Key: Key}"
+if [ "$COUNT" = "" ]; then
+  aws s3api list-objects --output text --bucket $BUCKET --query "Contents[].{Key: Key}"
+else
+  aws s3api list-objects --output text --bucket $BUCKET --query "Contents[].{Key: Key}" --max-items $COUNT
+fi
 
 exit 0
 
