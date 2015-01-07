@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e
-set -x
+#set -x
 
 USAGE="Usage: resourceput [resource_key] [db_name]"
 
@@ -15,18 +15,19 @@ DB_NAME=$2
 
 RESOURCE_NAME=$(basename "$RESOURCE_KEY")
 
-MONGO_HOST="ec2-54-172-64-205.compute-1.amazonaws.com:27017"
+[ "$MONGO_HOST" = "" ] && MONGO_HOST="127.0.0.1:27017"
 MONGO_DB="$DB_NAME"
 MONGO_COLLECTION_RESOURCE=resource
-MONGO_COLLECTION_FOLDER=folder
 
 # lookup folder_id
 FOLDER_KEY=$(dirname "$RESOURCE_KEY")
-FOLDER_ID=$(folderput "$FOLDER_KEY")
+FOLDER_ID=$(./folderput "$FOLDER_KEY" "$DB_NAME")
 
-# upsert key, name, folder_id
+mongo --quiet $MONGO_HOST/$MONGO_DB --eval "db.$MONGO_COLLECTION_RESOURCE.update( { key:\"$RESOURCE_KEY\" }, { \$set: { key:\"$RESOURCE_KEY\", name: \"$RESOURCE_NAME\", folder_id: $FOLDER_ID } }, { upsert: true } )" >/dev/null
 
-mongo --quiet $MONGO_HOST/$MONGO_DB --eval "db.$MONGO_COLLECTION_RESOURCE.update( { key:\"$RESOURCE_KEY\" }, { \$set: { key:\"$RESOURCE_KEY\", name: \"$RESOURCE_NAME\", folder_id: $FOLDER_ID } }, { upsert: true } )"
+RESOURCE_ID=$(mongo --quiet $MONGO_HOST/$MONGO_DB --eval "printjson(db.$MONGO_COLLECTION_RESOURCE.find( { key:\"$RESOURCE_KEY\" }, { _id: 1 } ).toArray() )" | cut -d: -f2 | cut -d' ' -f2 )
+
+echo "$RESOURCE_ID"
 
 exit 0
 
