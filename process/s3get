@@ -1,7 +1,6 @@
 #!/bin/bash
 
 set -e
-set -x
 
 USAGE="Usage: s3get [bucket] [key] [destination]"
 
@@ -20,7 +19,9 @@ FILENAME=$(basename "$KEY")
 
 DESTINATION=$WORKING_DIR/$FILENAME
 
-aws s3api get-object --bucket "$BUCKET" --key "$KEY" "$DESTINATION"
+aws s3api get-object --bucket "$BUCKET" --key "$KEY" "$DESTINATION" >>/dev/null
+
+echo "$DESTINATION"
 
 exit 0
 

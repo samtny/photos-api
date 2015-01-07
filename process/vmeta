@@ -1,0 +1,25 @@
+#!/bin/bash
+
+set -e
+
+USAGE="Usage: vmeta [original]"
+
+if [ $# -lt 1 ]; then
+  echo "$USAGE"
+  exit 1
+fi
+
+ORIGINAL=$1
+
+FILENAME=$(basename "$ORIGINAL")
+
+[ "$WORKING_DIR" = "" ] && WORKING_DIR=.
+
+META=$WORKING_DIR/meta__$FILENAME.txt
+
+avconv -i "$ORIGINAL" 2>&1 | grep -v 'output file must be specified' >>$META
+
+echo "$META"
+
+exit 0
+
