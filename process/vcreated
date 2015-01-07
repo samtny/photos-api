@@ -1,0 +1,1 @@
+cat working/meta__100_0007.MOV.txt | grep -m 1 creation_time | cut -d: -f2,3,4 | sed 's/^ *//'
