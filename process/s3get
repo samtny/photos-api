@@ -2,26 +2,46 @@
 
 set -e
 
-USAGE="Usage: s3get [bucket] [key] [destination]"
+usage()
+{
+  echo "Usage: s3get -b [bucket] key1 key2 ..."
+}
 
-if [ $# -lt 2 ]; then
-  echo "$USAGE"
+while getopts ":b:" opt; do
+  case $opt in
+    b)
+      BUCKET=$OPTARG
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [ -z "$BUCKET" ]; then
+  usage
   exit 1
 fi
 
-BUCKET=$1
-KEY=$2
-DESTINATION=$3
-
-FILENAME=$(basename "$KEY")
-
 [ "$WORKING_DIR" = "" ] && WORKING_DIR=.
 
-DESTINATION=$WORKING_DIR/$FILENAME
+shift $((OPTIND-1))
 
-aws s3api get-object --bucket "$BUCKET" --key "$KEY" "$DESTINATION" >>/dev/null
+for KEY in $@
+do
+  FILENAME=$(basename "$KEY")
 
-echo "$DESTINATION"
+  DESTINATION=$WORKING_DIR/$FILENAME
+
+  aws s3api get-object --bucket "$BUCKET" --key "$KEY" "$DESTINATION" >>/dev/null
+
+  echo "$DESTINATION"
+done
 
 exit 0
 
