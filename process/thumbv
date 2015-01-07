@@ -1,0 +1,70 @@
+#!/bin/bash
+
+set -e
+
+usage()
+{
+  echo "Usage: vthumb -n -d [dimensions] -q [quality] original1 original2 ..."
+}
+
+while getopts ":nd:q:" opt; do
+  case $opt in
+    n)
+      NOPAD=1
+      ;;
+    d)
+      DIMENSIONS=$OPTARG
+      ;;
+    q)
+      QUALITY=$OPTARG
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
+[ -z "$DIMENSIONS" ] && DIMENSIONS=200x200
+[ -z "$QUALITY" ] && QUALITY=80
+
+[ -z "$WORKING_DIR" ] && WORKING_DIR=.
+
+shift $((OPTIND-1))
+
+while [ $# -gt 0 ]
+do
+  ORIGINAL=$1
+
+  FILENAME=$(basename "$ORIGINAL")
+
+  FRAME=$WORKING_DIR/frame__$FILENAME.jpg
+  THUMB=$WORKING_DIR/${DIMENSIONS}__$FILENAME.jpg
+
+  DURATION=$(avconv -i "$ORIGINAL" 2>&1 | grep Duration | cut -d' ' -f4 | sed s/,//)
+
+  SECONDS=$(echo "$DURATION" | awk -F: '{ print ($1 * 3600) + ($2 * 60) + $3 }' | cut -d'.' -f1)
+
+  [ $SECONDS -lt 300 ] && SS=30
+  [ $SECONDS -lt 30 ] && SS=5
+  [ $SECONDS -lt 5 ] && SS=0
+
+  avconv -loglevel quiet -ss $SS -i "$ORIGINAL" -strict experimental -vframes 1 $FRAME
+
+  if [ -z "$NOPAD" ]; then
+    convert "$FRAME" -auto-orient +repage -thumbnail $DIMENSIONS -background white -gravity center -extent $DIMENSIONS -strip -interlace Plane -quality $QUALITY "$THUMB"
+  else
+    convert "$FRAME" -auto-orient +repage -thumbnail $DIMENSIONS -strip -interlace Plane -quality $QUALITY "$THUMB"
+  fi
+
+  echo "$THUMB"
+
+  shift
+done
+
+exit 0
+

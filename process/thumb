@@ -2,34 +2,58 @@
 
 set -e
 
-USAGE="Usage: thumb [original] [dimensions] [nopad]"
+usage()
+{
+  echo "Usage: thumb -n -d [dimensions] -q [quality] original1 original2 ..."
+}
 
-if [ $# -lt 1 ]; then
-  echo "$USAGE"
-  exit 1
-fi
+while getopts ":nd:q:" opt; do
+  case $opt in
+    n)
+      NOPAD=1
+      ;;
+    d)
+      DIMENSIONS=$OPTARG
+      ;;
+    q)
+      QUALITY=$OPTARG
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
 
-ORIGINAL=$1
-DIMENSIONS=$2
-NOPAD=$3
+[ -z "$DIMENSIONS" ] && DIMENSIONS=200x200
+[ -z "$QUALITY" ] && QUALITY=80
 
-[ "$DIMENSIONS" = "" ] && DIMENSIONS="200x200"
+[ -z "$WORKING_DIR" ] && WORKING_DIR=.
 
-QUALITY=80
+shift $((OPTIND-1))
 
-FILENAME=$(basename "$ORIGINAL")
+while [ $# -gt 0 ]
+do
+  ORIGINAL=$1
 
-[ "$WORKING_DIR" = "" ] && WORKING_DIR=.
+  FILENAME=$(basename "$ORIGINAL")
+ 
+  THUMB=$WORKING_DIR/${DIMENSIONS}__$FILENAME.jpg
 
-THUMB=$WORKING_DIR/thumb__$FILENAME.jpg
+  if [ "$NOPAD" = "" ]; then
+    convert "$ORIGINAL" -auto-orient +repage -thumbnail $DIMENSIONS -background white -gravity center -extent $DIMENSIONS -strip -interlace Plane -quality $QUALITY "$THUMB"
+  else
+    convert "$ORIGINAL" -auto-orient +repage -thumbnail $DIMENSIONS -strip -interlace Plane -quality $QUALITY "$THUMB"
+  fi
 
-if [ "$NOPAD" = "" ]; then
-  convert "$ORIGINAL" -auto-orient +repage -thumbnail $DIMENSIONS -background white -gravity center -extent $DIMENSIONS -strip -interlace Plane -quality $QUALITY "$THUMB"
-else
-  convert "$ORIGINAL" -auto-orient +repage -thumbnail $DIMENSIONS -strip -interlace Plane -quality $QUALITY "$THUMB"
-fi
+  echo "$THUMB"
 
-echo "$THUMB"
+  shift
+done
 
 exit 0
 
