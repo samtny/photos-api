@@ -29,10 +29,12 @@ while getopts ":nd:q:" opt; do
   esac
 done
 
-[ -z "$DIMENSIONS" ] && DIMENSIONS=200x200
-[ -z "$QUALITY" ] && QUALITY=80
-
 [ -z "$WORKING_DIR" ] && WORKING_DIR=.
+[ -z "$DIMENSIONS" ] && DIMENSIONS=200x200
+
+mkdir -p $WORKING_DIR/$DIMENSIONS
+
+[ -z "$QUALITY" ] && QUALITY=80
 
 shift $((OPTIND-1))
 
@@ -43,7 +45,7 @@ do
   FILENAME=$(basename "$ORIGINAL")
 
   FRAME=$WORKING_DIR/frame__$FILENAME.jpg
-  THUMB=$WORKING_DIR/${DIMENSIONS}__$FILENAME.jpg
+  THUMB=$WORKING_DIR/${DIMENSIONS}/$FILENAME.jpg
 
   DURATION=$(avconv -i "$ORIGINAL" 2>&1 | grep Duration | cut -d' ' -f4 | sed s/,//)
 

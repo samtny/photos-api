@@ -29,10 +29,12 @@ while getopts ":nd:q:" opt; do
   esac
 done
 
-[ -z "$DIMENSIONS" ] && DIMENSIONS=200x200
-[ -z "$QUALITY" ] && QUALITY=80
-
 [ -z "$WORKING_DIR" ] && WORKING_DIR=.
+[ -z "$DIMENSIONS" ] && DIMENSIONS=200x200
+
+mkdir -p "$WORKING_DIR/$DIMENSIONS"
+
+[ -z "$QUALITY" ] && QUALITY=80
 
 shift $((OPTIND-1))
 
@@ -42,7 +44,7 @@ do
 
   FILENAME=$(basename "$ORIGINAL")
  
-  THUMB=$WORKING_DIR/${DIMENSIONS}__$FILENAME.jpg
+  THUMB=$WORKING_DIR/$DIMENSIONS/$FILENAME.jpg
 
   if [ "$NOPAD" = "" ]; then
     convert "$ORIGINAL" -auto-orient +repage -thumbnail $DIMENSIONS -background white -gravity center -extent $DIMENSIONS -strip -interlace Plane -quality $QUALITY "$THUMB"

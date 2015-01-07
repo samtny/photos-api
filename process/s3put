@@ -4,16 +4,19 @@ set -e
 
 usage()
 {
-  echo "Usage: s3put -b [bucket] -f [folder] file1 file2 ..."
+  echo "Usage: s3put -b [bucket] -f [folder] -c [content-type] file1 file2 ..."
 }
 
-while getopts ":b:f:" opt; do
+while getopts ":b:f:c:" opt; do
   case $opt in
     b)
       BUCKET=$OPTARG
       ;;
     f)
       FOLDER=$OPTARG
+      ;;
+    c)
+      CONTENT_TYPE=$OPTARG
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
@@ -32,6 +35,7 @@ if [ -z "$BUCKET" ]; then
 fi
 
 [ ! -z "$FOLDER" ] && FOLDER=${FOLDER%/}
+[ -z "$CONTENT_TYPE" ] && CONTENT_TYPE="binary/octet-stream"
 
 shift $((OPTIND-1))
 
@@ -48,7 +52,7 @@ do
     KEY=$FOLDER/$FILENAME
   fi
   
-  aws s3api put-object --bucket "$BUCKET" --key "$KEY" --body "$FILE" --content-md5 $MD5SUM >>/dev/null
+  aws s3api put-object --bucket "$BUCKET" --key "$KEY" --body "$FILE" --content-type $CONTENT_TYPE --content-md5 $MD5SUM >>/dev/null
 
   echo "$BUCKET/$KEY"
 

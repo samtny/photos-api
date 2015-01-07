@@ -1,0 +1,75 @@
+#!/bin/bash
+
+set -e
+set -x
+usage()
+{
+  echo "process_dir -b [bucket] -p [prefix] dir" 
+}
+
+while getopts ":b:p:" opt; do
+  case $opt in
+    b)
+      BUCKET=$OPTARG
+      ;;
+    p)
+      PREFIX=$OPTARG
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [ -z "$BUCKET" ]; then
+  usage
+  exit 1
+fi
+
+shift $((OPTIND-1))
+
+DIR=$1
+
+if [ -z "$DIR" ]; then
+  usage
+  exit 1
+fi
+
+find -P "$DIR" -type f -print0 | while IFS= read -r -d $'\0' FILE; do
+  if [ -z "$PREFIX" ]; then
+    KEY=${FILE:${#DIR}}
+  else
+    KEY=$PREFIX/${FILE:${#DIR}}
+  fi
+
+  FOLDER=$(dirname "$KEY")
+
+  ./s3put -b "$BUCKET" -f "$FOLDER" "$FILE"
+ 
+  ./resourceput "$KEY" "$BUCKET"
+
+  TYPE=$(./type "$FILE")
+
+  case "$TYPE" in
+    "Image")
+      DIMENSIONS=200x200
+
+      THUMB=$(./thumb -d "$DIMENSIONS" "$FILE")
+      ./s3put -b "$BUCKET" -f "__thumbs/$DIMENSIONS/$FOLDER" -c "image/jpeg" "$THUMB"
+      ;;
+    "Video")
+      DIMENSIONS=200x200
+
+      THUMB=$(./thumbv -d "$DIMENSIONS" "$FILE")
+      ./s3put -b "$BUCKET" -f "__thumbs/$DIMENSIONS/$FOLDER" -c "image/jpeg" "$THUMB"
+      ;;
+  esac
+done
+
+exit 0
+

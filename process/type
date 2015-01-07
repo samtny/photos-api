@@ -1,0 +1,23 @@
+#!/bin/bash
+
+USAGE="Usage: type [FILE]"
+
+if [ $# -lt 1 ]; then
+  echo "$USAGE"
+  exit 1
+fi
+
+FILE=$1
+
+RE_IMAGE="jpg$|png$|gif$|jpeg$|bmp$|crw$"
+RE_VIDEO="mov$|mpeg$|mpg$|avi$|3gp$"
+
+BASENAME=$(basename "$FILE")
+FILENAME="${BASENAME##*/}"
+EXTENSION=$(echo "${FILENAME##*.}" | tr '[:upper:]' '[:lower:]')
+
+[[ $EXTENSION =~ $RE_IMAGE ]] && echo "Image" && exit 0
+[[ $EXTENSION =~ $RE_VIDEO ]] && echo "Video" && exit 0
+
+echo "Other" && exit 0
+
