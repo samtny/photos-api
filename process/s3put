@@ -2,22 +2,47 @@
 
 set -e
 
-USAGE="Usage: s3put [source] [bucket] [key]"
+usage()
+{
+  echo "Usage: s3put -b [bucket] file1 key1 file2 key2 ..."
+}
 
-if [ $# -lt 3 ]; then
-  echo "$USAGE"
+while getopts ":b:" opt; do
+  case $opt in
+    b)
+      BUCKET=$OPTARG
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [ -z "$BUCKET" ]; then
+  usage
   exit 1
 fi
 
-SOURCE=$1
-BUCKET=$2
-KEY=$3
+shift $((OPTIND-1))
 
-MD5SUM=$(openssl dgst -md5 -binary "$SOURCE" | openssl enc -base64)
+while [ $# -ge 2 ]
+do
+  FILE=$1
+  KEY=$2
+  
+  MD5SUM=$(openssl dgst -md5 -binary "$FILE" | openssl enc -base64)
 
-aws s3api put-object --bucket "$BUCKET" --key "$KEY" --body "$SOURCE" --content-md5 $MD5SUM >>/dev/null
+  aws s3api put-object --bucket "$BUCKET" --key "$KEY" --body "$FILE" --content-md5 $MD5SUM >>/dev/null
 
-echo "$BUCKET/$KEY"
+  echo "$BUCKET/$KEY"
+
+  shift 2
+done
 
 exit 0
 
