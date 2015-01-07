@@ -4,13 +4,16 @@ set -e
 
 usage()
 {
-  echo "Usage: s3put -b [bucket] file1 key1 file2 key2 ..."
+  echo "Usage: s3put -b [bucket] -f [folder] file1 file2 ..."
 }
 
-while getopts ":b:" opt; do
+while getopts ":b:f:" opt; do
   case $opt in
     b)
       BUCKET=$OPTARG
+      ;;
+    f)
+      FOLDER=$OPTARG
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
@@ -28,20 +31,28 @@ if [ -z "$BUCKET" ]; then
   exit 1
 fi
 
+[ ! -z "$FOLDER" ] && FOLDER=${FOLDER%/}
+
 shift $((OPTIND-1))
 
-while [ $# -ge 2 ]
+while [ $# -gt 0 ]
 do
   FILE=$1
-  KEY=$2
-  
+  FILENAME="${FILE##*/}"
+
   MD5SUM=$(openssl dgst -md5 -binary "$FILE" | openssl enc -base64)
 
+  if [ -z "$FOLDER" ]; then
+    KEY=$FILENAME
+  else
+    KEY=$FOLDER/$FILENAME
+  fi
+  
   aws s3api put-object --bucket "$BUCKET" --key "$KEY" --body "$FILE" --content-md5 $MD5SUM >>/dev/null
 
   echo "$BUCKET/$KEY"
 
-  shift 2
+  shift
 done
 
 exit 0
