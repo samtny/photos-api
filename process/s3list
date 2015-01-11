@@ -2,7 +2,7 @@
 
 set -e
 
-USAGE="Usage: s3list [BUCKET] [COUNT] [OFFSET]"
+USAGE="Usage: s3list [BUCKET] [COUNT]"
 
 if [ $# -lt 1 ]; then
   echo "$USAGE"
@@ -11,12 +11,10 @@ fi
 
 BUCKET=$1
 COUNT=$2
-OFFSET=$3
 
 LIST_OBJECTS="aws s3api list-objects --output text --bucket $BUCKET --query Contents[].{Key:Key}"
 
 [ "$COUNT" != "" ] && LIST_OBJECTS=" $LIST_OBJECTS --max-items $COUNT"
-[ "$OFFSET" != "" ] && LIST_OBJECTS=" $LIST_OBJECTS --starting-token None___$OFFSET"
 
 if [ "$COUNT" = "" ]; then
   $LIST_OBJECTS
