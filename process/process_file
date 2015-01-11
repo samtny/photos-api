@@ -4,16 +4,16 @@ set -e
 
 usage()
 {
-  echo "process_file -b [bucket] -p [prefix] file" 
+  echo "process_file -b [bucket] -k [key] file" 
 }
 
-while getopts ":b:p:" opt; do
+while getopts ":b:k:" opt; do
   case $opt in
     b)
       BUCKET=$OPTARG
       ;;
-    p)
-      PREFIX=$OPTARG
+    k)
+      KEY=$OPTARG
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
@@ -42,17 +42,13 @@ fi
 
 FILENAME=$(basename "$FILE")
 
-if [ -z "$PREFIX" ]; then
+if [ -z "$KEY" ]; then
   KEY=$FILENAME
-  S3_FOLDER=""
-  ./s3put -b "$BUCKET" "$FILE"
-else
-  KEY=$PREFIX/$FILENAME
-  S3_FOLDER=$(dirname "$KEY")
-  ./s3put -b "$BUCKET" -f "$S3_FOLDER" "$FILE"
 fi
+
+./s3put -b "$BUCKET" -k "$KEY" "$FILE"
  
-./resourceput "$KEY" "$BUCKET"
+./resourceput -d "$BUCKET" "$KEY" 
 
 TYPE=$(./type "$FILE")
 
@@ -61,13 +57,13 @@ case "$TYPE" in
     DIMENSIONS=200x200
 
     THUMB=$(./thumb -d "$DIMENSIONS" "$FILE")
-    ./s3put -b "$BUCKET" -f "__thumbs/$DIMENSIONS/$S3_FOLDER" -c "image/jpeg" "$THUMB"
+    ./s3put -b "$BUCKET" -k "__thumbs/$DIMENSIONS/$KEY" -c "image/jpeg" "$THUMB"
     ;;
   "Video")
     DIMENSIONS=200x200
 
     THUMB=$(./thumbv -d "$DIMENSIONS" "$FILE")
-    ./s3put -b "$BUCKET" -f "__thumbs/$DIMENSIONS/$S3_FOLDER" -c "image/jpeg" "$THUMB"
+    ./s3put -b "$BUCKET" -k "__thumbs/$DIMENSIONS/$KEY" -c "image/jpeg" "$THUMB"
     ;;
 esac
 

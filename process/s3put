@@ -4,16 +4,16 @@ set -e
 
 usage()
 {
-  echo "Usage: s3put -b [bucket] -f [folder] -c [content-type] file1 file2 ..."
+  echo "Usage: s3put -b [bucket] -k [key] -c [content-type] file"
 }
 
-while getopts ":b:f:c:" opt; do
+while getopts ":b:k:c:" opt; do
   case $opt in
     b)
       BUCKET=$OPTARG
       ;;
-    f)
-      FOLDER=$OPTARG
+    k)
+      KEY=$OPTARG
       ;;
     c)
       CONTENT_TYPE=$OPTARG
@@ -34,30 +34,24 @@ if [ -z "$BUCKET" ]; then
   exit 1
 fi
 
-[ ! -z "$FOLDER" ] && FOLDER=${FOLDER%/}
-[ -z "$CONTENT_TYPE" ] && CONTENT_TYPE="binary/octet-stream"
-
 shift $((OPTIND-1))
 
-while [ $# -gt 0 ]
-do
-  FILE=$1
-  FILENAME="${FILE##*/}"
+FILE=$1
 
-  MD5SUM=$(openssl dgst -md5 -binary "$FILE" | openssl enc -base64)
+if [ -z "$FILE" ]; then
+  usage
+  exit 1
+fi
 
-  if [ -z "$FOLDER" ]; then
-    KEY=$FILENAME
-  else
-    KEY=$FOLDER/$FILENAME
-  fi
-  
-  aws s3api put-object --bucket "$BUCKET" --key "$KEY" --body "$FILE" --content-type $CONTENT_TYPE --content-md5 $MD5SUM >>/dev/null
+[ -z "$KEY" ] && KEY="${FILE##*/}"
+[ -z "$CONTENT_TYPE" ] && CONTENT_TYPE="binary/octet-stream"
 
-  echo "$BUCKET/$KEY"
+MD5SUM=$(openssl dgst -md5 -binary "$FILE" | openssl enc -base64)
+ 
+aws s3api put-object --bucket "$BUCKET" --key "$KEY" --body "$FILE" --content-type $CONTENT_TYPE --content-md5 $MD5SUM >>/dev/null
 
-  shift
-done
+echo "$BUCKET/$KEY"
 
+shift
 exit 0
 

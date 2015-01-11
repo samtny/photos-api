@@ -38,11 +38,10 @@ fi
 ./s3list $FROM_BUCKET 100 | while IFS= read -r FROM_KEY; do
   FILE=$(./s3get -b "$FROM_BUCKET" "$FROM_KEY")
 
-  TO_PREFIX=$(dirname "$FROM_KEY")
+  TO_KEY="$FROM_KEY"
+  [ ! -z "$PREFIX" ] && TO_KEY=$PREFIX/$TO_KEY
 
-  [ ! -z "$PREFIX" ] && TO_PREFIX=$PREFIX/$TO_PREFIX
-
-  ./process_file -b "$TO_BUCKET" -p "$TO_PREFIX" "$FILE"
+  ./process_file -b "$TO_BUCKET" -k "$TO_KEY" "$FILE"
 done
 
 exit 0

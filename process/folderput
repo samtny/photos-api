@@ -2,16 +2,38 @@
 
 set -e
 
-USAGE="Usage: folderput [path] [db] [child_folder_id]"
+usage()
+{
+  echo "Usage: folderput -d [db_name] -c [child_folder_id] path"
+}
 
-if [ $# -lt 2 ]; then
-  echo "$USAGE"
+while getopts ":d:c:" opt; do
+  case $opt in
+    d)
+      DB_NAME=$OPTARG
+      ;;
+    c)
+      CHILD_FOLDER_ID=$OPTARG
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [ -z "$DB_NAME" ]; then
+  usage
   exit 1
 fi
 
+shift $((OPTIND-1))
+
 FOLDER_PATH=$1
-DB_NAME=$2
-CHILD_FOLDER_ID=$3
 
 [ "$MONGO_HOST" = "" ] && MONGO_HOST="127.0.0.1:27017"
 MONGO_DB="$DB_NAME"
@@ -28,11 +50,12 @@ if [ "$CHILD_FOLDER_ID" != "" ]; then
   mongo --quiet $MONGO_HOST/$MONGO_DB --eval "db.$MONGO_COLLECTION_FOLDER.update( { _id: $FOLDER_ID, children: { \$not: { \$in: [ $CHILD_FOLDER_ID ] } } }, { \$push: { children: $CHILD_FOLDER_ID } } )" >/dev/null
 fi
 
+# handle parent
 if [ "$FOLDER_PATH" != "" ]; then
   PARENT_FOLDER_PATH=$(dirname "$FOLDER_PATH")
   [ "$PARENT_FOLDER_PATH" = "." ] && PARENT_FOLDER_PATH=""
 
-  ./folderput "$PARENT_FOLDER_PATH" "$MONGO_DB" $FOLDER_ID
+  ./folderput -d "$MONGO_DB" -c "$FOLDER_ID" "$PARENT_FOLDER_PATH"
 fi
 
 [ "$CHILD_FOLDER_ID" = "" ] && echo "$FOLDER_ID"
