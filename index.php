@@ -31,7 +31,7 @@ switch ($action_params[0]) {
     $resource_key = $resource['key'];
     $derivative = $_GET['derivative'];
     if (!empty($derivative)) {
-      $resource_key = $derivative . '/' . $resource_key;
+      $resource_key = $derivative . '/' . $resource_key . '.jpg';
     }
     $resource_url = resource_url($resource_key);
     deliver_redirect($resource_url);
