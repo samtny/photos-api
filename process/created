@@ -1,1 +1,0 @@
-cat $(./meta working/100_0013.JPG) | grep -m 1 'exif:DateTime:' | cut -d' ' -f6,7
