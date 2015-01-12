@@ -52,20 +52,28 @@ fi
 
 TYPE=$(./type "$FILE")
 
-case "$TYPE" in
+case $TYPE in
   "Image")
-    DIMENSIONS=200x200
-
-    THUMB=$(./thumb -d "$DIMENSIONS" "$FILE")
-    ./s3put -b "$BUCKET" -k "__thumbs/$DIMENSIONS/$KEY" -c "image/jpeg" "$THUMB"
+    THUMB_COMMAND=./thumb
     ;;
   "Video")
-    DIMENSIONS=200x200
-
-    THUMB=$(./thumbv -d "$DIMENSIONS" "$FILE")
-    ./s3put -b "$BUCKET" -k "__thumbs/$DIMENSIONS/$KEY" -c "image/jpeg" "$THUMB"
+    THUMB_COMMAND=./thumbv
+    ;;
+  "Other")
+    exit 0
     ;;
 esac
+
+variants=( 200x200 722x722 )
+
+for DIMENSIONS in "${variants[@]}"
+do
+  COMMAND=("$THUMB_COMMAND" "-d" "$DIMENSIONS" "$FILE")
+
+  THUMB=$(${COMMAND[@]})
+
+  ./s3put -b "$BUCKET" -k "__thumbs/$DIMENSIONS/$KEY" -c "image/jpeg" "$THUMB"
+done
 
 exit 0
 
