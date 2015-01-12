@@ -1,0 +1,19 @@
+<?php
+
+define('EC2_IAM_ROLE', 'www-photos');
+define('EC2_REGION', 'us-east-1');
+
+define('MONGO_URI', 'mongodb://127.0.0.1/');
+define('MONGO_DB', 'some-db');
+
+define('RESOURCE_SORT', '_id');
+define('RESOURCE_PAGE', 1000);
+define('RESOURCE_DERIVATIVE_DEFAULT', 'thumb/100x100');
+
+define('FOLDER_PAGE', 25);
+define('FOLDER_SORT', 'path');
+
+define('CLOUDFRONT_URL', 'https://somedistribution.cloudfront.net');
+define('CLOUDFRONT_PRIVATE_KEY', 'system/someprivatekey.pem');
+define('CLOUDFRONT_KEY_PAIR_ID', 'somekeypairid');
+
