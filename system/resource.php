@@ -1,7 +1,7 @@
 <?php
 
-require_once 'config.php';
-require_once 'cloudfront.php';
+require_once ('config.php');
+require_once ('cloudfront.php');
 
 function resource_get($resource_id) {
   $resource = NULL;

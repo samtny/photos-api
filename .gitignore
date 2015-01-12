@@ -6,3 +6,4 @@ system/composer.phar
 system/config.php
 process/working
 process/test
+.idea

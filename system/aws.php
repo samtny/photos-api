@@ -1,6 +1,6 @@
 <?php
 
-require_once 'vendor/autoload.php';
+require_once (__DIR__ . '/../vendor/autoload.php');
 
 use Doctrine\Common\Cache\FilesystemCache;
 use Guzzle\Cache\DoctrineCacheAdapter;
@@ -19,4 +19,3 @@ return array(
     ),
   ),
 );
-
