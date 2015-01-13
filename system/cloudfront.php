@@ -16,8 +16,9 @@ function cloudfront_signed_url($resource_key) {
   $expires = strtotime('tomorrow midnight');
 
   $resourceUrl = $hostUrl . '/' . urlencode($resource_key);
-//deliver_string($resourceUrl);
-  $policy = <<<POLICY
+
+  if (CLOUDFRONT_RESTRICT_IP) {
+    $policy = <<<POLICY
 {
   "Statement": [
     {
@@ -30,6 +31,21 @@ function cloudfront_signed_url($resource_key) {
   ]
 }
 POLICY;
+  }
+  else {
+    $policy = <<<POLICY
+{
+  "Statement": [
+    {
+      "Resource": "{$resourceUrl}",
+      "Condition": {
+        "DateLessThan": {"AWS:EpochTime": {$expires}}
+      }
+    }
+  ]
+}
+POLICY;
+  }
 
   $signedUrl = $cloudFront->getSignedUrl(array(
     'url' => $resourceUrl,
@@ -40,4 +56,3 @@ POLICY;
 
   return $signedUrl;
 }
-
