@@ -1,5 +1,8 @@
 <?php
 
+define('AWS_ACCESS_KEY_ID', 'SOMEKEY');
+define('AWS_SECRET_ACCESS_KEY', 'SOMESECRET');
+
 define('EC2_IAM_ROLE', 'www-photos');
 define('EC2_REGION', 'us-east-1');
 
@@ -17,3 +20,4 @@ define('CLOUDFRONT_URL', 'https://somedistribution.cloudfront.net');
 define('CLOUDFRONT_PRIVATE_KEY', 'system/someprivatekey.pem');
 define('CLOUDFRONT_KEY_PAIR_ID', 'somekeypairid');
 
+define('CLOUDFRONT_RESTRICT_IP', true);
