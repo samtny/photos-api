@@ -11,7 +11,7 @@ function resource_get($resource_id) {
   $collection = new MongoCollection($db, 'resource');
 
   $resources_query = array('_id' => new MongoId($resource_id));
-  $resources_fields = array('filename', 'key');
+  $resources_fields = array('filename', 'key', 'type');
 
   $resource = $collection->findOne($resources_query, $resources_fields);
 
@@ -58,7 +58,7 @@ function resource_list($start = 0, $count = RESOURCE_PAGE, $sort = RESOURCE_SORT
 
   //$resources_query['derivative'] = $derivative;
 
-  $resources_fields = array('filename', 'key', 'derivative', 'name');
+  $resources_fields = array('filename', 'key', 'derivative', 'name', 'type');
 
   $cursor = $collection->find($resources_query, $resources_fields)->sort(array($sort => 1))->skip($start)->limit($count);
 
