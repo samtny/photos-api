@@ -33,7 +33,9 @@ function resource_list($start = 0, $count = RESOURCE_PAGE, $sort = RESOURCE_SORT
   $db = $m->{MONGO_DB};
   $collection = new MongoCollection($db, 'resource');
 
-  $resources_query = array();  
+  $resources_query = array(
+    'type' => new MongoRegex('/Image|Video/i'),
+  );
   
   !empty($folder_id) && $resources_query['folder_id'] = new MongoId($folder_id);
 
