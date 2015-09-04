@@ -1,9 +1,14 @@
 phpinfo.php
 system/vendor
+vendor
 system/*.pem
+*.pem
 system/composer.lock
+composer.lock
 system/composer.phar
+composer.phar
 system/config.php
+config.php
 process/working
 process/test
 .idea
